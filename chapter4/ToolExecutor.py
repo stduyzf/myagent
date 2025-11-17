@@ -1,6 +1,6 @@
 import os
 from typing import Dict, Any, Callable
-
+import requests
 from dotenv import load_dotenv
 from serpapi import SerpApiClient
 load_dotenv()
@@ -75,3 +75,26 @@ def search(query:str) -> str:
 
     except Exception as e:
         return f"搜索时发生错误: {e}"
+
+def calculator(task:str)->str:
+    """
+    一个基于Wolfram Alpha实现的计算工具
+    输出想要计算的文本即可
+    """
+    url = "http://api.wolframalpha.com/v2/query"
+    params = {
+        "input": task,
+        "appid": "QPL79REY3K",
+        "format": "plaintext",
+        "output": "json",
+        "podstate": "Result__Step-by-step solution",  # 可获取步骤
+    }
+    resp = requests.get(url, params=params).json()
+    if not resp["queryresult"]["success"]:
+        return "计算失败或无结果"
+    result_text=""
+    for pod in resp["queryresult"]["pods"]:
+        if "Result" in pod["title"] or "Decimal" in pod["title"]:
+            result_text = pod["subpods"][0]["plaintext"]
+            break
+    return result_text.strip() if result_text else "未找到结果"

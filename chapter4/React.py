@@ -1,11 +1,14 @@
 import re
 from chapter4.LLM_client import HelloAgentsLLM
-from tools import ToolExecutor, search
+from chapter4.ToolExecutor import ToolExecutor, search,calculator
+
 
 # (此处省略 REACT_PROMPT_TEMPLATE 的定义)
 REACT_PROMPT_TEMPLATE = """
-请注意，你是一个有能力调用外部工具的智能助手。
-
+你是一个严谨的数学助手。
+对于任何涉及精确数值、分数、大整数（>100位）、符号化简、方程求解、级数、矩阵等问题，你自己绝对不能直接计算，必须调用工具 Calculator。
+即使你觉得很简单，也必须调用工具验证。
+只有工具返回结果后，你才能给出最终答案。
 可用工具如下：
 {tools}
 
@@ -129,6 +132,8 @@ if __name__ == '__main__':
     tool_executor = ToolExecutor()
     search_desc = "一个网页搜索引擎。当你需要回答关于时事、事实以及在你的知识库中找不到的信息时，应使用此工具。"
     tool_executor.register_tool("Search", search_desc, search)
+    cal_desc = "当遇到任何需要精确计算的数学问题时必须调用此工具，尤其是大整数、分数、高精度、符号化简、方程求解、级数求和、矩阵特征值等。大模型自己计算会出错或丢失精度。输入任意数学表达式或自然语言数学题都可以。"
+    tool_executor.register_tool("Calculator", cal_desc, calculator)
     agent = ReActAgent(llm_client=llm, tool_executor=tool_executor)
-    question = "华为最新的手机是哪一款？它的主要卖点是什么？"
+    question = "(2^1024 + 2^1000 - 2^995) × (2^2048 - 1) ÷ 2^500 的精确整数结果是多少？"
     agent.run(question)
